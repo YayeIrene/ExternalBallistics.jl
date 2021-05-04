@@ -1,7 +1,7 @@
-module OneD
-using ..Types, ..Utils
+#module OneD
+#using  ..Utils
 
-export timeOfFlight!
+#export timeOfFlight!
 
 
 function trajectory!(p::Projectile1D;dt=1e-6)
@@ -14,7 +14,7 @@ function trajectory!(p::Projectile1D;dt=1e-6)
     p.position += p.velocity_m * dt
 end
 
-function timeOfFlight!(p::Projectile1D, target::Target1D;dt=1e-6)
+function timeOfFlight!(p::Projectile1D, target::AbstractTarget;dt=1e-6)
 #function flight(p::Projectile, ρ::Float64, dt::Float64)
     t = 0.0
     old_position = p.position
@@ -38,4 +38,4 @@ function timeOfFlight!(p::Projectile1D, target::Target1D;dt=1e-6)
 
 end
 
-end
+#end

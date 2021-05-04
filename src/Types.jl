@@ -1,18 +1,11 @@
-module Types
+#module Types
 
-export   Target1D, Projectile1D
-"""
-AbstractPenetrator is the super type which contains the different types of penetrators
-"""
+#export   Target1D, Projectile1D
+
 abstract type AbstractPenetrator end
-"""
-AbstractTarget is the super type which contains all the different types of targets
-"""
+
 abstract type AbstractTarget end
 
-"""
-AbstractMaterial is the super type which contains all the different types of materials
-"""
 abstract type AbstractMaterial end
 
 mutable struct Projectile1D{T<: Union{AbstractPenetrator,Nothing}, R<:Union{AbstractMaterial,Nothing}} <: AbstractPenetrator
@@ -27,7 +20,6 @@ mutable struct Projectile1D{T<: Union{AbstractPenetrator,Nothing}, R<:Union{Abst
     yaw::Union{Float64,Nothing}
     b_f::Union{Array{Float64,1},Nothing} #body_vec#b_1f, b_2f, b_3f
     coeffAero
-    σ::Float64
 end
 
 
@@ -36,4 +28,15 @@ mutable struct Target1D <:AbstractTarget
     position::Float64
 end
 
+mutable struct TargetRect <:AbstractTarget
+    a::Float64
+    b::Float64
+    position::Float64
 end
+
+mutable struct TargetCirc <:AbstractTarget
+    ρ::Float64 #diameter
+    position::Float64
+end
+
+#end
