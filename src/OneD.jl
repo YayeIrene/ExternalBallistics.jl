@@ -4,7 +4,7 @@
 #export timeOfFlight!
 
 
-function trajectory!(p::Projectile1D;dt=1e-6)
+function trajectory!(p::AbstractPenetrator;dt=1e-6)
     ma = machNumber(p.velocity_m)
     cd0 = p.coeffAero(ma)
     ρ0 = density(0.0)
@@ -14,7 +14,7 @@ function trajectory!(p::Projectile1D;dt=1e-6)
     p.position += p.velocity_m * dt
 end
 
-function timeOfFlight!(p::Projectile1D, target::AbstractTarget;dt=1e-6)
+function timeOfFlight!(p::AbstractPenetrator, target::AbstractTarget;dt=1e-6)
 #function flight(p::Projectile, ρ::Float64, dt::Float64)
     t = 0.0
     old_position = p.position

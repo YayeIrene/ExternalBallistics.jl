@@ -1,5 +1,7 @@
 module ExternalBallistics
 using Distributions, LinearAlgebra
+using DifferentialEquations, Distances
+using Interpolations, DataFrames
 
 # Write your package code here.
 include("Types.jl")
@@ -9,8 +11,11 @@ include("Scenario.jl")
 include("Utils.jl")
 #using .Utils
 include("OneD.jl")
+include("Aero.jl")
 #using .OneD
+include("Mpmm.jl")
 
-export Projectile1D, createProjectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc, AbstractTarget
+export Projectile, createProjectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc,
+AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM
 
 end

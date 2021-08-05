@@ -6,9 +6,7 @@
 
 #export createProjectile, createFragment, createTarget
 
-function createProjectile(calibre::Float64,mass::Float64, velocity::Float64,  position::Float64 ;ev = nothing, spin = nothing, bf = nothing, type=nothing, mat = nothing, yaw=nothing, cd = 0.0)
-            Projectile1D(calibre, type, mat, mass, velocity, ev, position, spin, yaw, bf,cd)
-end
+
 
 function createTarget(size::Float64, position::Float64)
     Target1D(size,position)
@@ -20,6 +18,14 @@ end
 
 function createTargetCirc(size::Float64, position::Float64)
     TargetCirc(size,position)
+end
+
+function createTarget(position::AbstractVector{Float64})
+    Target(position)
+end
+
+function createGun(u₀::Float64,lat::Float64,QE::Float64,AZ::Float64,tc::Float64; lw=nothing, X2w=nothing)
+    Gun(u₀,lat,tc,lw,X2w,QE,AZ)
 end
 
 
