@@ -25,8 +25,10 @@ function mpmm(du,u,p,t)
     #println(X₂)
     ρ =  density(X₂)
     #println("ρ", " ", ρ)
-    α = atan(vz/vx)
-    β = asin(vy/v)
+    #α = atan(vz/vx)
+    #β = asin(vy/v)
+    α = atan(vy/vx)
+    β = asin(vz/v)
 
     #mach = Utils.machNumber(v,X₂)
     if tp==nothing
@@ -42,7 +44,11 @@ function mpmm(du,u,p,t)
    αₑ_bar = yawOfRepose(v_bar, du_bar,pₛ, t, Iₓ, ρ,d,CMα,v)
    #println("αₑ", " ", αₑ_bar)
     αₑ = norm(αₑ_bar)
-    αₜ = asin(αₑ)
+    #αₜ = asin(αₑ)
+    αₜ = αₑ
+    #println("1", " ", αₜ)
+    #αₜ = asin(sqrt((sin(α)*cos(β))^2+(sin(β)^2)))
+    #println("2", " ", αₜ)
     #println("αₜ", " ", αₜ )
     #println("αₜ2", " ", sin(αₑ))
 
@@ -52,8 +58,8 @@ function mpmm(du,u,p,t)
     CNa = inter(aero.mach,aero.cna)
     CLα³ = 0.0
     CLα⁵ = 0.0
-    cnpα_matrix = matrix(aero.cnpα_1,aero.cnpα_5,aero.cnpα_10)
-    cnpα = inter_matrix(aero.mach, cnpα_matrix, [1.0,5.0,10.0])
+    cnpα_matrix = matrix(aero.cnpα_1,aero.cnpα_2, aero.cnpα_5,aero.cnpα_10)
+    cnpα = inter_matrix(aero.mach, cnpα_matrix, [1.0,2.0,5.0,10.0])
 
     #Cmag = CN_pα_inter(mach,(rad2deg(αₜ))^2)#cnpa
     Cmag = cnpα(mach,rad2deg(αₜ))
@@ -61,14 +67,15 @@ function mpmm(du,u,p,t)
     Cₛₚᵢₙ = clp(mach)#clp
 
     CD = drag(CX0,CX2,αₜ,mach,CNa)
+    #CD = drag(CX0,CX2,αₜ,α,β,mach,CNa)
     #println("α", " ",αₜ)
     #println("mach", " ", mach)
     #println("CD", " ", CD)
     CL = lift(CX0,CX2,αₜ,mach,CNa)
     #println("CL", " ", CL)
-    FDx = - pi*ρ*d^2/(8)*(CD)*v*vx #drag
-    FDy = - pi*ρ*d^2/(8)*(CD)*v*vy #drag
-    FDz = - pi*ρ*d^2/(8)*(CD)*v*vz #drag
+    FDx = - pi*ρ*d^2/(8)*(CD)*v*v_bar[1] #drag
+    FDy = - pi*ρ*d^2/(8)*(CD)*v*v_bar[2] #drag
+    FDz = - pi*ρ*d^2/(8)*(CD)*v*v_bar[3] #drag
     FLx = pi*ρ*d^2/(8)*(CL)*v^2*αₑ_bar[1] #lift
     FLy = pi*ρ*d^2/(8)*(CL)*v^2*αₑ_bar[2] #lift
     FLz = pi*ρ*d^2/(8)*(CL)*v^2*αₑ_bar[3] #lift
@@ -198,50 +205,60 @@ function iniCond(gun::Gun, calibre::Float64)
     return u0
 end
 
-function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun;w_bar=[0.0,0.0,0.0])
+function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing)
 
     epsilonAz = 1e6
     epsilonQE = 1e6
     precisie = 0.001
-    g₀ = grav0(gun.lat)
+    g₀=grav0(gun.lat)
     ddoel = euclidean(proj.position, drone.position)
     tdoel = sqrt(drone.position[1]^2+drone.position[3]^2)/gun.u₀
     gun.QE = (drone.position[2] - proj.position[2] + g₀ /2 *tdoel^2)*tdoel/gun.u₀
     gun.AZ = 0.0
     tspan = (0.0,1000.0)
-    R = 6.356766*1e6 #m
-    Ω = 7.292115*1e-5 #rad/s
-    ω_bar = [Ω*cosd(gun.lat)*cosd(gun.AZ), Ω*sind(gun.lat), -Ω*cosd(gun.lat)*sind(gun.AZ)]
+    #R = 6.356766*1e6 #m
+    #Ω = 7.292115*1e-5 #rad/s
+    #ω_bar = [Ω*cosd(gun.lat)*cosd(gun.AZ), Ω*sind(gun.lat), -Ω*cosd(gun.lat)*sind(gun.AZ)]
     #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone]
     #αₑ_bar = [0.0,0.0,0.0]
-    p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone.position,0.0]
+    #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone.position,0.0]
 
     while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
-        u0 = iniCond(gun, proj.calibre)
+
+        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
+        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+
+
+        #proj = createProjectile(projectile.mass,projectile.calibre, velocity=muzzle_velocity,  position=muzzle_position, Ix=projectile.Ix )
+        #target = ExternalBallistics.createTarget(drone_position)
+        #gun = createGun(weapon.u₀,latitude,weapon.θₜ+tourelle.θ,weapon.ξₜ+tourelle.ξ,weapon.tc)
+
+        #u0 = iniCond(gun, proj.calibre)
         #global proj = projectile(u0[1],u0[2],u0[3],u0[4],u0[5],u0[6],0.0)
         #proj = projectile(u0[1],u0[2],u0[3],u0[4],u0[5],u0[6],0.0)
-        proj.position = [u0[1],u0[2],u0[3]]
-        proj.velocity = [u0[4],u0[5],u0[6]]
-        proj.tof = 0.0
-        trajectoryMPMM!(u0, tspan, p, proj, drone)
+        #proj.position = [u0[1],u0[2],u0[3]]
+        #proj.velocity = [u0[4],u0[5],u0[6]]
+        #proj.tof = 0.0
+        impactP =trajectoryMPMM(proj, drone, gun,aero,atm=atmosphere)[1]
+        #trajectoryMPMM!(u0, tspan, p, proj, drone)
 
         #global epsilonQE = proj.y - drone.y
-        epsilonQE = proj.position[2] - drone.position[2]
+        epsilonQE = impactP[2] - drone.position[2]
         #println("epsilonQE", " ", epsilonQE)
         #QE = QE0 + (accuracy)/(range_/QE0)
         #global epsilonAz = (sqrt((proj.z-drone.z)^2+(proj.x-drone.x)^2)*sign(atan(proj.z)/proj.x)-atan(drone.z/drone.x))
-        epsilonAz = (sqrt((proj.position[3]-drone.position[3])^2+(proj.position[1]-drone.position[1])^2)*sign(atan(proj.position[3])/proj.position[1])-atan(drone.position[3]/drone.position[1]))
+        epsilonAz = (sqrt((impactP[3]-drone.position[3])^2+(impactP[1]-drone.position[1])^2)*sign(atan(impactP[3])/impactP[1])-atan(drone.position[3]/drone.position[1]))
         #println("epsilonAz", " ", epsilonAz)
         #global AZ = AZ - epsilonAz/ddoel
         gun.AZ = gun.AZ - epsilonAz/ddoel
         #global QE = QE - epsilonQE/ddoel
-        gunn.QE = gun.QE - epsilonQE/ddoel
+        gun.QE = gun.QE - epsilonQE/ddoel
 
         #trajectory!(u0, tspan, p, proj, drone)
         #calcRange = euclidean([0.0,0.0,0.0], [proj.x,proj.y, proj.z])
         #global accuracy = range_  - calcRange
-        #println("AZ", " ", AZ)
-        #println("QE", " ", QE)
+        #println("AZ", " ", gun.AZ)
+        #println("QE", " ", gun.QE)
 
 
     end

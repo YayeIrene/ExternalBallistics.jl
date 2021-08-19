@@ -26,7 +26,8 @@ mutable struct TargetCirc <:AbstractTarget
 end
 
 mutable struct Target<:AbstractTarget
-    position::Array{Float64,1}
+    position::Union{Array{Float64,1},Nothing}
+    ρ::Union{Float64,Nothing}
 end
 
 struct Zone
@@ -77,6 +78,7 @@ mutable struct Gun
     QE::Union{Float64,Nothing}
     AZ::Union{Float64,Nothing}
 end
+
 
 mutable struct Wind
     cross::Float64

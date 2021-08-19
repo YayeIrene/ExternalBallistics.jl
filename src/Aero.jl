@@ -16,8 +16,15 @@ function drag(CD0,CDδ2,αₜ,mach)
 end
 function drag(CX0,CX2,αₜ,mach,CNa)
     CX = CX0(mach) + CX2(mach) * (sin(αₜ))^2
-    CD = CNa(mach) *sin(αₜ) - CX*cos(αₜ)
-    return -CD
+    #CD = CNa(mach) *(sin(αₜ))^2 - CX*cos(αₜ)
+    CD = CNa(mach) *sin(αₜ) + CX*cos(αₜ)
+    return CD
+end
+function drag(CX0,CX2,αₜ, α,β,mach,CNa)
+    CX = CX0(mach) + CX2(mach) * (sin(αₜ))^2
+    #CD = CNa(mach) *(sin(αₜ))^2 - CX*cos(αₜ)
+    CD = CNa(mach) *sin(α)*cos(β) + CX*cos(α)*cos(β)
+    return CD
 end
 
 function lift(CLα,CLα³,αₜ,mach)
@@ -26,7 +33,8 @@ function lift(CLα,CLα³,αₜ,mach)
 end
 function lift(CX0,CX2,αₜ,mach,CNa)
     CX = CX0(mach) + CX2(mach) * (sin(αₜ))^2
-    CL = CNa(mach) *cos(αₜ) + CX
+    #CL = CNa(mach) *cos(αₜ) + CX
+    CL =-CNa(mach)*cos(αₜ)+CX*sin(αₜ)
     return CL
 end
 

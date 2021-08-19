@@ -20,8 +20,8 @@ function createTargetCirc(size::Float64, position::Float64)
     TargetCirc(size,position)
 end
 
-function createTarget(position::AbstractVector{Float64})
-    Target(position)
+function createTarget(;ρ=nothing,position=nothing)
+    Target(position,ρ)
 end
 
 function createGun(u₀::Float64,lat::Float64,QE::Float64,AZ::Float64,tc::Float64; lw=nothing, X2w=nothing)
