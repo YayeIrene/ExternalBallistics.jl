@@ -51,6 +51,10 @@ mutable struct Fragment <:AbstractPenetrator
 
 end
 
+"""
+    Projectile is defined by the following parameters: mass, calibre,
+    positionsion, velocity, tof, Ix, Iy, and Xcg 
+"""
 mutable struct Projectile <:AbstractPenetrator
     mass::Float64
     calibre::Float64

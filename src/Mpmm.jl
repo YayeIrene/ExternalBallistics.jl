@@ -213,8 +213,10 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     g₀=grav0(gun.lat)
     ddoel = euclidean(proj.position, drone.position)
     tdoel = sqrt(drone.position[1]^2+drone.position[3]^2)/gun.u₀
-    gun.QE = (drone.position[2] - proj.position[2] + g₀ /2 *tdoel^2)*tdoel/gun.u₀
-    gun.AZ = 0.0
+    #gun.QE = (drone.position[2] - proj.position[2] + g₀ /2 *tdoel^2)*tdoel/gun.u₀
+    #gun.AZ = 0.0
+    gun.QE=deg2rad(gun.QE)
+    gun.AZ=deg2rad(gun.AZ)
     tspan = (0.0,1000.0)
     #R = 6.356766*1e6 #m
     #Ω = 7.292115*1e-5 #rad/s
@@ -225,8 +227,8 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
 
     while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
 
-        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
-        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        #proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
+        #proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
 
 
         #proj = createProjectile(projectile.mass,projectile.calibre, velocity=muzzle_velocity,  position=muzzle_position, Ix=projectile.Ix )
@@ -253,6 +255,9 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
         gun.AZ = gun.AZ - epsilonAz/ddoel
         #global QE = QE - epsilonQE/ddoel
         gun.QE = gun.QE - epsilonQE/ddoel
+
+        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
+        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
 
         #trajectory!(u0, tspan, p, proj, drone)
         #calcRange = euclidean([0.0,0.0,0.0], [proj.x,proj.y, proj.z])
