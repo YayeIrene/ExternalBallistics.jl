@@ -15,7 +15,7 @@ include("Aero.jl")
 #using .OneD
 include("Mpmm.jl")
 
-export Projectile, createProjectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc,
+export Projectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc,
 AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, Gun,
 QEfinderMPMM!
 

@@ -1,9 +1,14 @@
 #module Types
 
 #export   Target1D, Projectile1D
-
+"""
+    abstract type under which projectiles types are defined.
+"""
 abstract type AbstractPenetrator end
 
+"""
+    abstract type under which target types are defined.
+"""
 abstract type AbstractTarget end
 
 abstract type AbstractMaterial end
@@ -14,12 +19,18 @@ mutable struct Target1D <:AbstractTarget
     position::Float64
 end
 
+"""
+    defines a rectangular target by specifying the lenght a, the height b and the position (range)
+"""
 mutable struct TargetRect <:AbstractTarget
     a::Float64
     b::Float64
     position::Float64
 end
 
+"""
+    defines a circular target by specifying the radius ρ and the position (range)
+"""
 mutable struct TargetCirc <:AbstractTarget
     ρ::Float64 #diameter
     position::Float64
@@ -53,7 +64,7 @@ end
 
 """
     Projectile is defined by the following parameters: mass, calibre,
-    positionsion, velocity, tof, Ix, Iy, and Xcg 
+    positionsion, velocity, tof, Ix, Iy, and Xcg
 """
 mutable struct Projectile <:AbstractPenetrator
     mass::Float64
@@ -73,6 +84,9 @@ mutable struct FragShapes
     cf::Tuple{Float64, Float64}
 end
 
+"""
+    Gun is defined by the muzzle velocity, the latitude, the twist, the gun length, the height, the elevation and azimuth
+"""
 mutable struct Gun
     u₀::Float64
     lat::Union{Float64,Nothing}
@@ -83,12 +97,17 @@ mutable struct Gun
     AZ::Union{Float64,Nothing}
 end
 
-
+"""
+    Wind is defined by the cross and range winds magnitude
+"""
 mutable struct Wind
     cross::Float64
     range::Float64
 end
 
+"""
+    defines the atmosphere by specifying the pressure, temperature and relative humidity
+"""
 mutable struct Air
     p::Float64
     t::Float64

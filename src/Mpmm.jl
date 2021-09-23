@@ -160,6 +160,12 @@ end
 affect!(integrator) = terminate!(integrator)
 affect_tf!(integrator) = terminate!(integrator)
 
+"""
+    computes the impact point, the velocity at impact and the time of flight by providing a projectile, a target, a gun and aerodynamic coefficient data.
+    optional options are the computational time, the constant R, the constant Ω, the wind velocity and the atmosphere.
+    The trajectory is computed using MPMM
+
+"""
 function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::Gun, aero::DataFrame; tspan = (0.0,1000.0), R = 6.356766*1e6, Ω = 7.292115*1e-5, w_bar=[0.0,0.0,0.0],atm=nothing )
     #global dist = target.position[1]
     #append!(p,dist)
@@ -205,6 +211,12 @@ function iniCond(gun::Gun, calibre::Float64)
     return u0
 end
 
+"""
+    computes the elevation and azimuth a projectile, a target, a gun and aerodynamic coefficient data.
+    optional options are the computational time, the wind velocity and the atmosphere.
+    The trajectory is computed using MPMM
+
+"""
 function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing)
 
     epsilonAz = 1e6
