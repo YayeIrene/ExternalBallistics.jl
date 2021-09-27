@@ -161,9 +161,20 @@ affect!(integrator) = terminate!(integrator)
 affect_tf!(integrator) = terminate!(integrator)
 
 """
-    computes the impact point, the velocity at impact and the time of flight by providing a projectile, a target, a gun and aerodynamic coefficient data.
-    optional options are the computational time, the constant R, the constant Ω, the wind velocity and the atmosphere.
-    The trajectory is computed using MPMM
+    trajectoryMPMM(proj, target, gun, aero; args ... )
+
+Returns the impact point (vector), the velocity at impact (vector) and the time of flight of the projectile (proj).
+The stop condition for the trajectory computation is the range of the target. Launcher conditions are specified by the gun
+    parameters. The projectile aerodynamic coefficient are specified in the aero variable.
+Optional arguments are:
+
+* tspan = the computational time interval. Default is (0.0,1000.0)
+* R = the earth radius. Default is 6.356766*1e6
+* Ω = the earth spin rate. Default is 7.292115*1e-5
+* w_bar = the wind velocity. Default is [0.0,0.0,0.0]
+* atm =the atmosphere characteristics. Default is nothing
+
+The projectile trajectory is computed using MPMM
 
 """
 function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::Gun, aero::DataFrame; tspan = (0.0,1000.0), R = 6.356766*1e6, Ω = 7.292115*1e-5, w_bar=[0.0,0.0,0.0],atm=nothing )
@@ -212,9 +223,17 @@ function iniCond(gun::Gun, calibre::Float64)
 end
 
 """
-    computes the elevation and azimuth a projectile, a target, a gun and aerodynamic coefficient data.
-    optional options are the computational time, the wind velocity and the atmosphere.
-    The trajectory is computed using MPMM
+    QEfinderMPMM!(drone, proj, gun,aero;args ...)
+
+Returns the elevation and azimuth departure angles of the projectile (proj) with target (drone).
+Launcher conditions are specified by the gun parameters, projectile aerodynamic coefficient are specified in the aero variable.
+Optional arguments are:
+
+* tspan = the computational time interval. Default is (0.0,1000.0)
+* w_bar = the wind velocity. Default is [0.0,0.0,0.0]
+* atm =the atmosphere characteristics. Default is nothing
+
+The trajectory is computed using MPMM
 
 """
 function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing)

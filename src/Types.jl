@@ -20,7 +20,8 @@ mutable struct Target1D <:AbstractTarget
 end
 
 """
-    defines a rectangular target by specifying the lenght a, the height b and the position (range)
+    TargetRect(a,b,position)
+defines a rectangular target by specifying the lenght a, the height b and the position (range)
 """
 mutable struct TargetRect <:AbstractTarget
     a::Float64
@@ -29,7 +30,8 @@ mutable struct TargetRect <:AbstractTarget
 end
 
 """
-    defines a circular target by specifying the radius ρ and the position (range)
+    TargetCirc(ρ,position)
+defines a circular target by specifying the radius ρ and the position (range)
 """
 mutable struct TargetCirc <:AbstractTarget
     ρ::Float64 #diameter
@@ -63,8 +65,16 @@ mutable struct Fragment <:AbstractPenetrator
 end
 
 """
-    Projectile is defined by the following parameters: mass, calibre,
-    positionsion, velocity, tof, Ix, Iy, and Xcg
+    Projectile(mass,calibre,position,tof,Ix,Iy,Xcg)
+Projectile is defined by the following parameters:
+* mass (kg)
+* calibre (m)
+* positionsion: coordinate of the 'aimpoint'
+* velocity: velocity vector
+* tof: time of flight
+* Ix: axial moment of inertia
+* Iy: transversal moment of inertia
+* Xcg: distance to the center of gravity
 """
 mutable struct Projectile <:AbstractPenetrator
     mass::Float64
@@ -85,7 +95,15 @@ mutable struct FragShapes
 end
 
 """
-    Gun is defined by the muzzle velocity, the latitude, the twist, the gun length, the height, the elevation and azimuth
+    Gun(u₀,lat,tc,lw,X2w,QE,AZ)
+Gun is defined by the following parameters:
+* u₀: the muzzle velocity
+* lat: the latitude
+* tc: the twist
+* lw: the gun length
+* X2w: the height
+* QE: the the elevation angle
+* AZ: the azimuth
 """
 mutable struct Gun
     u₀::Float64
@@ -98,7 +116,10 @@ mutable struct Gun
 end
 
 """
-    Wind is defined by the cross and range winds magnitude
+    Wind(cross, range)
+Wind is defined by the:
+* cross wind magnitude
+* range wind magnitude
 """
 mutable struct Wind
     cross::Float64
@@ -106,7 +127,11 @@ mutable struct Wind
 end
 
 """
-    defines the atmosphere by specifying the pressure, temperature and relative humidity
+    Air(p,t,rh)
+defines the atmosphere by specifying:
+* p: the pressure
+* t: the temperature
+* rh: the relative humidity
 """
 mutable struct Air
     p::Float64
