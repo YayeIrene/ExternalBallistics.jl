@@ -9,5 +9,5 @@ makedocs(
                 "Home" => "index.md"
                ])
 deploydocs(;
-    repo="github.com/YayeIrene/ExternalBallistics.jl",
+    repo="github.com/YayeIrene/ExternalBallistics.jl.git",
 )
