@@ -147,6 +147,22 @@ function condition(u,t,integrator) # Event when event_f(u,t) == 0
   #integrator.p[8][1]>u[1]
 end
 
+"""
+    conditionHeight(u, t, integrator)
+
+    ContinousCallback function is used to stop algorithm when the Height reach 0.00
+"""
+function conditionHeight(u,t,integrator)
+
+  if u[1] > 0.1 && u[2] < 0.00
+    return norm(integrator.p[10])
+  else
+    return 1
+  end
+
+end
+
+
 function timeFuze(u,t,integrator)
     #euclidean([u[1],u[2],u[3]],integrator.p[8])-integrator.p[9]
 
@@ -236,7 +252,7 @@ Optional arguments are:
 The trajectory is computed using MPMM
 
 """
-function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing)
+function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
 
     epsilonAz = 1e6
     epsilonQE = 1e6
@@ -255,6 +271,7 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone]
     #αₑ_bar = [0.0,0.0,0.0]
     #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone.position,0.0]
+    global n=0
 
     while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
 
@@ -289,6 +306,11 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
 
         proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
         proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        if n>=maxiters
+            break
+        end
+        global n+=1
+
 
         #trajectory!(u0, tspan, p, proj, drone)
         #calcRange = euclidean([0.0,0.0,0.0], [proj.x,proj.y, proj.z])
@@ -300,4 +322,79 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     end
 
 return gun.QE,gun.AZ
+end
+
+
+function DirectFireTableMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::Gun, aero::DataFrame, stop_condition::String; tspan = (0.0,1000.0), R = 6.356766*1e6, Ω = 7.292115*1e-5, w_bar=[0.0,0.0,0.0],atm=nothing )
+
+    ω_bar = [Ω*cosd(gun.lat)*cosd(gun.AZ), Ω*sind(gun.lat), -Ω*cosd(gun.lat)*sind(gun.AZ)]
+    g₀=grav0(gun.lat)
+    if atm==nothing
+        tp = nothing
+    else
+        tp = temperature(atm.t, atm.rh, atm.p)
+    end
+
+    p = [proj,w_bar, R, g₀, ω_bar,target.position,5.0,tp,aero, 0.00]
+    p₀ = 2*pi*gun.u₀/(gun.tc*proj.calibre)
+
+    u0=[proj.position[1],proj.position[2],proj.position[3],proj.velocity[1],proj.velocity[2],proj.velocity[3],p₀]
+    
+    prob = ODEProblem(mpmm,u0,tspan, p)
+    
+    if stop_condition == "Range"
+        cb  = ContinuousCallback(condition,affect!)    
+    elseif stop_condition == "Height"
+        cb  = ContinuousCallback(conditionHeight, affect!)
+    end
+
+    sol = solve(prob, Tsit5(), callback=cb, reltol=1e-8, abstol=1e-8)
+    return prob, cb, sol
+
+end
+
+function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame, stop_condition::String;w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
+    epsilonAz = 1e6
+    epsilonQE = 1e6
+    
+    precisie = 0.001
+    
+    g₀ = grav0(gun.lat)
+    
+    ddoel = euclidean(proj.position, drone.position)
+    tdoel = sqrt(drone.position[1]^2+drone.position[3]^2)/gun.u₀
+
+    gun.QE=deg2rad(gun.QE)
+    gun.AZ=deg2rad(gun.AZ)
+    tspan = (0.0,1000.0)
+
+    global n=0
+
+    arrProb = []
+    arrCb   = []
+    arrSol  = []
+    while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
+
+        prob, cb, sol = DirectFireTableMPMM(proj, drone, gun,aero,stop_condition, atm=atmosphere)
+
+        epsilonQE = sol.u[end][2] - drone.position[2]
+        epsilonAz = (sqrt((sol.u[end][3]-drone.position[3])^2+(sol.u[end][1]-drone.position[1])^2)*sign(atan(sol.u[end][3])/sol.u[end][1])-atan(drone.position[3]/drone.position[1]))
+
+        gun.AZ = gun.AZ - epsilonAz/ddoel
+        gun.QE = gun.QE - epsilonQE/ddoel
+
+        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
+        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        if n>=maxiters
+            break
+        end
+        global n+=1
+
+        push!(arrProb, prob)
+        push!(arrCb, cb)
+        push!(arrSol, sol)        
+
+    end
+
+    return gun.QE,gun.AZ, arrProb, arrCb, arrSol
 end

@@ -16,7 +16,7 @@ include("Aero.jl")
 include("Mpmm.jl")
 
 export Projectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc,
-AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, Gun,
+AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, DirectFireTableMPMM, DirecFireTableQEfinderMPMM!, Gun,
 QEfinderMPMM!
 
 end
