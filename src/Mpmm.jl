@@ -353,30 +353,58 @@ function DirectFireTableMPMM(proj::AbstractPenetrator, target::AbstractTarget, g
 
 end
 
+"""
+```julia
+DirecFireTableQEfinderMPMM!(drone, proj, gun,aero, stop_condition;
+                            w_bar=[0.0,0.0,0.0],
+                            atmosphere=nothing,
+                            maxiters=1e6)
+```
+Returns the elevation and azimuth departure angles of the projectile (proj) with target (drone).
+Launcher conditions are specified by the gun parameters, projectile aerodynamic coefficient are specified in the aero variable.
+
+# Arguments
+- ´drone´         : AbstractTarget
+- `proj`          : AbstractPenetrator
+- `gun`           : Gun
+- `aero`          : DataFrame
+- `stop_condition`: String
+# Optional Arguments
+- `w_bar`     : the wind velocity. Default is [0.0,0.0,0.0]
+- `atmosphere`: the atmosphere characteristics. Defalut is nothing
+- `maxiters`  :
+"""
+
 function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame, stop_condition::String;w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
+    # error precision
     epsilonAz = 1e6
     epsilonQE = 1e6
+    precision = 0.001
     
-    precisie = 0.001
-    
-    g₀ = grav0(gun.lat)
-    
-    ddoel = euclidean(proj.position, drone.position)
-    tdoel = sqrt(drone.position[1]^2+drone.position[3]^2)/gun.u₀
+    # out condition initialization
+    global n = 0
 
-    gun.QE=deg2rad(gun.QE)
-    gun.AZ=deg2rad(gun.AZ)
+    # Calibration and Conversion
+    g₀     = grav0(gun.lat)
+    gun.QE = deg2rad(gun.QE)
+    gun.AZ = deg2rad(gun.AZ)
+
+    ddoel = euclidean(proj.position, drone.position)
+    tdoel = sqrt(drone.position[1]^2+drone.position[3]^2) / gun.u₀
+
     tspan = (0.0,1000.0)
 
-    global n=0
-
+    # data array to export value
     arrProb = []
     arrCb   = []
     arrSol  = []
-    while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
 
+    while abs(epsilonAz)>precision || abs(epsilonQE)>precision
+
+        # calculate the MPMM Trajectory
         prob, cb, sol = DirectFireTableMPMM(proj, drone, gun,aero,stop_condition, atm=atmosphere)
 
+        # Exporting 
         epsilonQE = sol.u[end][2] - drone.position[2]
         epsilonAz = (sqrt((sol.u[end][3]-drone.position[3])^2+(sol.u[end][1]-drone.position[1])^2)*sign(atan(sol.u[end][3])/sol.u[end][1])-atan(drone.position[3]/drone.position[1]))
 
@@ -385,16 +413,18 @@ function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetr
 
         proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
         proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        
+        # out condition in case of infinity loop
         if n>=maxiters
             break
-        end
-        global n+=1
+        end # end if maxiters
 
         push!(arrProb, prob)
         push!(arrCb, cb)
-        push!(arrSol, sol)        
+        push!(arrSol, sol)
 
-    end
+        global n+=1
 
+    end # end while precision
     return gun.QE,gun.AZ, arrProb, arrCb, arrSol
-end
+end # end DirecFireTableQEfinderMPMM!
