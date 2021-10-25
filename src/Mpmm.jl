@@ -375,9 +375,9 @@ Launcher conditions are specified by the gun parameters, projectile aerodynamic 
 - `maxiters`  :
 """
 
-function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame, stop_condition::String;w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
+function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun, aero::DataFrame, stop_condition::String; w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
     # error precision
-    epsilonAz = 1e6
+    epsilonAZ = 1e6
     epsilonQE = 1e6
     precision = 0.001
     
@@ -385,46 +385,48 @@ function DirecFireTableQEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetr
     global n = 0
 
     # Calibration and Conversion
-    g₀     = grav0(gun.lat)
-    gun.QE = deg2rad(gun.QE)
-    gun.AZ = deg2rad(gun.AZ)
+    g₀     = grav0(gun.lat)     # Gravitational Calibration
+    gun.QE = deg2rad(gun.QE)    # Convert Gun    Elevation from Degree to radian
+    gun.AZ = deg2rad(gun.AZ)    # Convert Turret Azimuth from Degree to radian
 
-    ddoel = euclidean(proj.position, drone.position)
-    tdoel = sqrt(drone.position[1]^2+drone.position[3]^2) / gun.u₀
-
-    tspan = (0.0,1000.0)
+    RealTgtRange = euclidean(proj.position, drone.position) # Equivalente to a Direct Line Of Sight
+    tspan = (0.00, 1000.00)
 
     # data array to export value
     arrProb = []
     arrCb   = []
     arrSol  = []
 
-    while abs(epsilonAz)>precision || abs(epsilonQE)>precision
+    while abs(epsilonAZ)>precision || abs(epsilonQE)>precision
 
         # calculate the MPMM Trajectory
-        prob, cb, sol = DirectFireTableMPMM(proj, drone, gun,aero,stop_condition, atm=atmosphere)
+        prob, cb, sol = DirectFireTableMPMM(proj, drone, gun, aero, stop_condition, atm=atmosphere)
 
-        # Exporting 
+        # Calculate the QE / AZ evaluated by the MPMM
         epsilonQE = sol.u[end][2] - drone.position[2]
-        epsilonAz = (sqrt((sol.u[end][3]-drone.position[3])^2+(sol.u[end][1]-drone.position[1])^2)*sign(atan(sol.u[end][3])/sol.u[end][1])-atan(drone.position[3]/drone.position[1]))
+        epsilonAZ = sqrt((sol.u[end][3] - drone.position[3])^2 + (sol.u[end][1] - drone.position[1])^2) * sign(atan(sol.u[end][3] / sol.u[end][1]) - atan(drone.position[3] / drone.position[1]))
+        
+        # Calculate QE / AZ
+        gun.AZ = gun.AZ - epsilonAZ / RealTgtRange
+        gun.QE = gun.QE - epsilonQE / RealTgtRange
 
-        gun.AZ = gun.AZ - epsilonAz/ddoel
-        gun.QE = gun.QE - epsilonQE/ddoel
-
-        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
-        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        # Set initial velocity and position in the 3D-Space
+        proj.velocity = [gun.u₀ * cos(gun.QE) * cos(gun.AZ), gun.u₀ * sin(gun.QE), gun.u₀ * cos(gun.QE) * sin(gun.AZ)]
+        proj.position = [gun.lw * cos(gun.QE) * cos(gun.AZ), gun.X2w + gun.lw * sin(gun.QE), gun.lw * cos(gun.QE) * sin(gun.AZ)]
         
         # out condition in case of infinity loop
         if n>=maxiters
             break
         end # end if maxiters
 
+        # Store data
         push!(arrProb, prob)
         push!(arrCb, cb)
         push!(arrSol, sol)
 
+        # increment maxiters
         global n+=1
-
     end # end while precision
+
     return gun.QE,gun.AZ, arrProb, arrCb, arrSol
 end # end DirecFireTableQEfinderMPMM!
