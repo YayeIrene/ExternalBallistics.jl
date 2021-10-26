@@ -2,6 +2,7 @@ module ExternalBallistics
 using Distributions, LinearAlgebra
 using DifferentialEquations, Distances
 using Interpolations, DataFrames
+#using Meshes
 
 # Write your package code here.
 include("Types.jl")
@@ -14,9 +15,9 @@ include("OneD.jl")
 include("Aero.jl")
 #using .OneD
 include("Mpmm.jl")
+include("fragmentation.jl")
 
-export Projectile, TargetRect, TargetCirc, createTargetRect, createTargetCirc,
-AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, Gun,
-QEfinderMPMM!
+export Projectile, AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, Gun,
+QEfinderMPMM!,Zone,Fragment,FragShapes,frag
 
 end

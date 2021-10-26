@@ -14,35 +14,24 @@ abstract type AbstractTarget end
 abstract type AbstractMaterial end
 
 
-mutable struct Target1D <:AbstractTarget
-    size::Float64
-    position::Float64
-end
-
-"""
-    TargetRect(a,b,position)
-defines a rectangular target by specifying the lenght a, the height b and the position (range)
-"""
-mutable struct TargetRect <:AbstractTarget
-    a::Float64
-    b::Float64
-    position::Float64
-end
-
-"""
-    TargetCirc(ρ,position)
-defines a circular target by specifying the radius ρ and the position (range)
-"""
-mutable struct TargetCirc <:AbstractTarget
-    ρ::Float64 #diameter
-    position::Float64
-end
-
 mutable struct Target<:AbstractTarget
     position::Union{Array{Float64,1},Nothing}
     ρ::Union{Float64,Nothing}
 end
 
+"""
+    Zone(angle, μ_number, σ_number, μ_mass, σ_mass, μ_velocity, σ_velocity, density)
+defines a framentation zone:
+* angleBegin: begin angle of the segment (degrees)
+* angleEnd: end angle of the segment (degrees)
+* μ_number: average number of fragments
+* σ_number: standard deviation of the distribution of number of fragments
+* μ_mass: average mass of the fragments
+* σ_mass: standard deviation of the distribution of the mass of fragments
+* μ_velocity: average velocity of the fragments
+* σ_velocity: standard deviation of the distribution of the velocity of fragments
+* density: density of the fragments
+"""
 struct Zone
     angle::Tuple{Float64, Float64}
     number::Tuple{Float64, Float64}
@@ -51,6 +40,13 @@ struct Zone
     density::Float64
 end
 
+"""
+    Fragment(position, position, density)
+defines the fragment by specifying:
+* position
+* position
+* density
+"""
 mutable struct Fragment <:AbstractPenetrator
     rad::Float64
     ax::Float64
@@ -85,14 +81,14 @@ mutable struct Projectile <:AbstractPenetrator
     Ix::Union{Float64,Nothing}
     Iy::Union{Float64,Nothing}
     Xcg::Union{Float64,Nothing}
+    spin::Union{Float64,Nothing}
+    αₑ::Union{Array{Float64,1},Nothing}
+
 
 end
 
 
-mutable struct FragShapes
-    cd::Tuple{Float64, Float64}
-    cf::Tuple{Float64, Float64}
-end
+
 
 """
     Gun(u₀,lat,tc,lw,X2w,QE,AZ)
@@ -140,4 +136,13 @@ mutable struct Air
 end
 
 
-#end
+"""
+    FragShapes(cd, cf)
+defines the fragment by specifying:
+* cd : drag coefficient
+* cf : shape factor
+"""
+mutable struct FragShapes
+    cd::Tuple{Float64, Float64}
+    cf::Tuple{Float64, Float64}
+end

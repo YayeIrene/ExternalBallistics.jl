@@ -18,13 +18,6 @@ Pages = ["index.md"]
 ## Functions Documentation
 
 ### Objects generation
-```@docs
-createTargetRect
-```
-
-```@docs
-createTargetCirc
-```
 
 ```@docs
 createTarget
@@ -56,13 +49,6 @@ Wind
 ```
 ```@docs
 Projectile
-```
-```@docs
-TargetRect
-```
-
-```@docs
-TargetCirc
 ```
 
 ```@docs

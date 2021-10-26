@@ -211,7 +211,7 @@ function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::G
  #proj.velocity[3] = sol.u[end][6]
  #proj.tof = sol.t[end]
  #proj.spin = sol.u[end][7]
- return [sol.u[end][1], sol.u[end][2], sol.u[end][3]], [sol.u[end][4], sol.u[end][5], sol.u[end][6]],sol.t[end]
+ return [sol.u[end][1], sol.u[end][2], sol.u[end][3]], [sol.u[end][4], sol.u[end][5], sol.u[end][6]],sol.t[end],yaw,sol.u[end][7]
 end
 
 function iniCond(gun::Gun, calibre::Float64)
@@ -236,7 +236,7 @@ Optional arguments are:
 The trajectory is computed using MPMM
 
 """
-function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing)
+function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun,aero::DataFrame;w_bar=[0.0,0.0,0.0],atmosphere=nothing, maxiters=1e6)
 
     epsilonAz = 1e6
     epsilonQE = 1e6
@@ -255,6 +255,7 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone]
     #αₑ_bar = [0.0,0.0,0.0]
     #p = [proj.inertia[1],w_bar, proj.calibre, R, g₀, ω_bar, proj.mass,drone.position,0.0]
+    global n=0
 
     while abs(epsilonAz)>precisie || abs(epsilonQE)>precisie
 
@@ -289,6 +290,11 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
 
         proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
         proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        if n>=maxiters
+            break
+        end
+        global n+=1
+
 
         #trajectory!(u0, tspan, p, proj, drone)
         #calcRange = euclidean([0.0,0.0,0.0], [proj.x,proj.y, proj.z])
