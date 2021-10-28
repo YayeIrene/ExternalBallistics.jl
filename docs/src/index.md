@@ -17,44 +17,13 @@ Pages = ["index.md"]
 - MPMM direct and indirect
 ## Functions Documentation
 
-### Objects generation
-
-```@docs
-createTarget
-```
-
-```@docs
-createGun
-```
-### Trajectory computation
-```@docs
-trajectoryMPMM
-```
-
-```@docs
-QEfinderMPMM!
+```@autodocs
+Modules = [ExternalBallistics]
+Order = [:function]
 ```
 
 ## Types Documentation
-
-```@docs
-AbstractTarget
-```
-
-```@docs
-AbstractPenetrator
-```
-```@docs
-Wind
-```
-```@docs
-Projectile
-```
-
-```@docs
-Air
-```
-
-```@docs
-Gun
+```@autodocs
+Modules = [ExternalBallistics]
+Order = [:type]
 ```
