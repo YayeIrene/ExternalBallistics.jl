@@ -240,14 +240,16 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
 
     epsilonAz = 1e6
     epsilonQE = 1e6
-    precisie = 0.001
+    precisie = 0.01
     g₀=grav0(gun.lat)
     ddoel = euclidean(proj.position, drone.position)
     tdoel = sqrt(drone.position[1]^2+drone.position[3]^2)/gun.u₀
     #gun.QE = (drone.position[2] - proj.position[2] + g₀ /2 *tdoel^2)*tdoel/gun.u₀
     #gun.AZ = 0.0
-    gun.QE=deg2rad(gun.QE)
-    gun.AZ=deg2rad(gun.AZ)
+    #gun.QE=deg2rad(gun.QE)
+    #gun.AZ=deg2rad(gun.AZ)
+    global QE = deg2rad(gun.QE)
+    global AZ = deg2rad(gun.AZ)
     tspan = (0.0,1000.0)
     #R = 6.356766*1e6 #m
     #Ω = 7.292115*1e-5 #rad/s
@@ -281,15 +283,19 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
         #println("epsilonQE", " ", epsilonQE)
         #QE = QE0 + (accuracy)/(range_/QE0)
         #global epsilonAz = (sqrt((proj.z-drone.z)^2+(proj.x-drone.x)^2)*sign(atan(proj.z)/proj.x)-atan(drone.z/drone.x))
-        epsilonAz = (sqrt((impactP[3]-drone.position[3])^2+(impactP[1]-drone.position[1])^2)*sign(atan(impactP[3])/impactP[1])-atan(drone.position[3]/drone.position[1]))
+        epsilonAz = impactP[3] - drone.position[3]
+        #epsilonAz = (sqrt((impactP[3]-drone.position[3])^2+(impactP[1]-drone.position[1])^2)*sign(atan(impactP[3])/impactP[1])-atan(drone.position[3]/drone.position[1]))
         #println("epsilonAz", " ", epsilonAz)
-        #global AZ = AZ - epsilonAz/ddoel
-        gun.AZ = gun.AZ - epsilonAz/ddoel
-        #global QE = QE - epsilonQE/ddoel
-        gun.QE = gun.QE - epsilonQE/ddoel
+        global AZ = AZ - epsilonAz/ddoel
+        #gun.AZ = rad2deg(gun.AZ - epsilonAz/ddoel)
+        global QE = QE - epsilonQE/ddoel
+        #gun.QE = rad2deg(gun.QE - epsilonQE/ddoel)
+        gun.AZ = rad2deg(AZ) 
+  
+        gun.QE = rad2deg(QE)
 
-        proj.velocity = [gun.u₀*cos(gun.QE)*cos(gun.AZ), gun.u₀*sin(gun.QE), gun.u₀*cos(gun.QE)*sin(gun.AZ)]
-        proj.position = [gun.lw*cos(gun.QE)*cos(gun.AZ), gun.X2w + gun.lw *sin(gun.QE), gun.lw*cos(gun.QE)*sin(gun.AZ)]
+        proj.velocity = [gun.u₀*cos(QE)*cos(AZ), gun.u₀*sin(QE), gun.u₀*cos(QE)*sin(AZ)]
+        proj.position = [gun.lw*cos(QE)*cos(AZ), gun.X2w + gun.lw *sin(QE), gun.lw*cos(QE)*sin(AZ)]
         if n>=maxiters
             break
         end
@@ -299,11 +305,13 @@ function QEfinderMPMM!(drone::AbstractTarget, proj::AbstractPenetrator, gun::Gun
         #trajectory!(u0, tspan, p, proj, drone)
         #calcRange = euclidean([0.0,0.0,0.0], [proj.x,proj.y, proj.z])
         #global accuracy = range_  - calcRange
-        #println("AZ", " ", gun.AZ)
-        #println("QE", " ", gun.QE)
+        #println("AZ", " ", AZ)
+        #println("QE", " ", QE)
 
 
     end
-
+    #gun.AZ = rad2deg(AZ) 
+  
+    #gun.QE = rad2deg(QE)
 return gun.QE,gun.AZ
 end
