@@ -18,6 +18,6 @@ include("Mpmm.jl")
 include("fragmentation.jl")
 
 export Projectile, AbstractTarget, AbstractPenetrator, Wind, createTarget, createGun, Air, trajectoryMPMM, Gun,
-QEfinderMPMM!,Zone,Fragment,FragShapes,frag
+QEfinderMPMM!,Zone,Fragment,FragShapes,frag, QEfinderMPMM
 
 end
