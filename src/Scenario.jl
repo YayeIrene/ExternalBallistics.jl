@@ -32,6 +32,16 @@ function createGun(u₀::Float64,lat::Float64,QE::Float64,AZ::Float64,tc::Float6
     Gun(u₀,lat,tc,lw,X2w,QE,AZ)
 end
 
+"""
+    generateFragment(mass;optional arguments)
+
+Creates an object fragment with mass (kg).
+optional arguments are: position, velocity, time of flight, moment of inertia, distance to the center of gravity.
+"""
+function generateFragment(mass::Float64; rad=nothing, ax=nothing, density=nothing, cd_sub=nothing, Aₚ=nothing, position=nothing, velocity =nothing, tof =nothing)
+    Fragment( rad,ax,mass,density,cd_sub,Aₚ, position,velocity,tof)
+        
+end
 
 
 #end

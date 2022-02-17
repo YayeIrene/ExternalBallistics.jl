@@ -263,7 +263,7 @@ function condition(u,t,integrator) # Event when event_f(u,t) == 0
 end
 
 function timeFuze(u,t,integrator)
-    u[8]-integrator.p[11]*2*pi
+    u[8]-integrator.p[11]*2*pi  #en radians
 end
 
 affect!(integrator) = terminate!(integrator)
@@ -286,7 +286,8 @@ Optional arguments are:
 The projectile trajectory is computed using MPMM
 
 """
-function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::Gun, aero::DataFrame; tspan = (0.0,1000.0), R = 6.356766*1e6, Ω = 7.292115*1e-5, w_bar=[0.0,0.0,0.0],atm=nothing,tf=1e10 )
+function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::Gun, aero::DataFrame; 
+    tspan = (0.0,1000.0), R = 6.356766*1e6, Ω = 7.292115*1e-5, w_bar=[0.0,0.0,0.0],atm=nothing,tf=1e10, fullSol=false )
     #global dist = target.position[1]
     #append!(p,dist)
     ω_bar = [Ω*cosd(gun.lat)*cosd(gun.AZ), Ω*sind(gun.lat), -Ω*cosd(gun.lat)*sind(gun.AZ)]
@@ -321,7 +322,11 @@ function trajectoryMPMM(proj::AbstractPenetrator, target::AbstractTarget, gun::G
  #proj.velocity[3] = sol.u[end][6]
  #proj.tof = sol.t[end]
  #proj.spin = sol.u[end][7]
- return [sol.u[end][1], sol.u[end][2], sol.u[end][3]], [sol.u[end][4], sol.u[end][5], sol.u[end][6]],sol.t[end],yaw,sol.u[end][7],sol.u[end][8]
+ if fullSol
+    return sol
+ else
+    return [sol.u[end][1], sol.u[end][2], sol.u[end][3]], [sol.u[end][4], sol.u[end][5], sol.u[end][6]],sol.t[end],yaw,sol.u[end][7],sol.u[end][8]
+ end 
 end
 
 function iniCond(gun::Gun, calibre::Float64)
@@ -473,8 +478,9 @@ function QEfinderMPMM(target::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     cb = ContinuousCallback(condition,affect!)
    
 
-    bvp3 = BVProblem(mpmm_round, bc3!, u0, tspan,p, maxiters=1e10)
-    sol3 = solve(bvp3, Shooting(Tsit5()),callback=cb, reltol=1e-9, abstol=1e-9)
+    bvp3 = BVProblem(mpmm_round, bc3!, u0, tspan,p, maxiters=1e6)
+    #sol3 = solve(bvp3, Shooting(Tsit5()),callback=cb, reltol=1e-8, abstol=1e-8)
+    sol3 = solve(bvp3, Shooting(AutoTsit5(Rosenbrock23())),callback=cb, reltol=1e-8, abstol=1e-8)
 
     muzzleVel = sol3.u[1][4:6]
     #projXZ = [muzzleVel[1], 0.0,muzzleVel[3]]
@@ -485,6 +491,7 @@ function QEfinderMPMM(target::AbstractTarget, proj::AbstractPenetrator, gun::Gun
     QE = asind(muzzleVel[2]/norm(muzzleVel))
     #AZ = acosd(muzzleVel[1]/(norm(muzzleVel)*cosd(QE)))
     AZ = atand(muzzleVel[3]/muzzleVel[1])
+    #println(muzzleVel)
 
 
  return QE,AZ

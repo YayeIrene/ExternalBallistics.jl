@@ -13,6 +13,8 @@ abstract type AbstractTarget end
 
 abstract type AbstractMaterial end
 
+abstract type AbstractZone end 
+
 
 mutable struct Target<:AbstractTarget
     position::Union{Array{Float64,1},Nothing}
@@ -32,12 +34,41 @@ defines a framentation zone:
 * σ_velocity: standard deviation of the distribution of the velocity of fragments
 * density: density of the fragments
 """
-struct Zone
+struct Zone<:AbstractZone
     angle::Tuple{Float64, Float64}
     number::Tuple{Float64, Float64}
     mass::Tuple{Float64, Float64}
     velocity::Tuple{Float64, Float64}
     density::Float64
+end
+
+"""
+    ZoneZdata(angle, number, mass, velocity, density)
+defines a framentation zone:
+* angle (degrees): vector with 3 numbers: 
+    - angle[1] is the lower point angle 
+    - angle[2] is the midpoint angle
+    - angle[3] is the upper point angle
+* number: Vector containing the number of fragments in each mass group
+* mass (kg): average mass of the fragments in each mass group
+!!! warning
+    The vectors number and mass have equal length
+* velocity (m/s): vector with 3 numbers:
+    - velocity[1] initial fragment speed for lower point angle
+    - velocity[2] initial fragment speed for midpoint angle
+    - velocity[3] initial fragment speed for upper point angle
+* density: density of the fragments
+"""
+struct ZoneZdata<:AbstractZone
+    angle::Vector{Float64}
+    number::Vector{Float64}
+    mass::Vector{Float64}
+    velocity::Vector{Float64}
+    density::Float64
+end 
+
+struct ZoneList{T} <: AbstractZone
+    list::Vector{T}
 end
 
 """
@@ -48,14 +79,14 @@ defines the fragment by specifying:
 * density
 """
 mutable struct Fragment <:AbstractPenetrator
-    rad::Float64
-    ax::Float64
-    mass::Float64
-    density::Float64
-    cd_sub::Float64
-    Aₚ::Float64
-    position::Array{Float64,1}
-    velocity::Array{Float64,1}
+    rad::Union{Float64,Nothing}
+    ax::Union{Float64,Nothing}
+    mass::Union{Float64,Nothing}
+    density::Union{Float64,Nothing}
+    cd_sub::Union{Float64,Nothing}
+    Aₚ::Union{Float64,Nothing}
+    position::Union{Array{Float64,1},Nothing}
+    velocity::Union{Array{Float64,1},Nothing}
     tof::Union{Float64,Nothing}
 
 end
