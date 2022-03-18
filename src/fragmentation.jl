@@ -7,7 +7,7 @@ function createFragment(z::Zone, s::Array{FragShapes,1},proj::AbstractPenetrator
     rads = rand(Uniform(0,360), number)
     axs = rand(Uniform(z.angle[1],z.angle[2]), number)
     f = Array{Fragment}(undef,number)
-    c_bar = proj.velocity/norm(proj.velocity)*cos(norm(proj.αₑ))+proj.αₑ
+    c_bar = proj.velocity/norm(proj.velocity)*cos(norm(proj.αₑ))+proj.αₑ # axis of the projectile
     #c_bar=[cos(α), -sin(α)]
     y_bar = [0.0, 1.0,0.0]
     e_bar = cross(c_bar,y_bar)/norm(cross(c_bar,y_bar))
@@ -131,5 +131,3 @@ function fragFly!(fragments, proj::AbstractPenetrator, w_bar::Array{Float64,1}, 
 
 end
 
-
-#end
